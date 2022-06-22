@@ -8,7 +8,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_C_COMPILER gcc)
 
 find_package(raylib 4.0.0 QUIET)
-
 if (NOT raylib_FOUND)
     include(FetchContent)
 
@@ -41,25 +40,13 @@ if (NOT EnTT_FOUND)
     FetchContent_MakeAvailable(EnTT)
 endif()
 
-#[[
-find_package(raylib_cpp QUIET)
-if (NOT raylib_cpp_FOUND)
-    include(FetchContent)
-    FetchContent_Declare(
-        raylib_cpp
-        GIT_REPOSITORY https://github.com/RobLoach/raylib-cpp.git
-        GIT_TAG v4.2.2
-    )
-    FetchContent_MakeAvailable(raylib_cpp)
-endif()
-]]
-
 add_executable(${PROJECT_NAME}
     src/main.cpp
 )
-install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION bin)
+#install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION ./bin)
 
-target_link_libraries(${PROJECT_NAME} raylib #[[raylib_cpp]])
-target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra)
+target_link_libraries(${PROJECT_NAME} PRIVATE raylib)
+target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -Werror -pedantic)
+target_compile_definitions(${PROJECT_NAME} PUBLIC DEBUG="")
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)

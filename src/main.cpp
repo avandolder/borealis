@@ -1,33 +1,36 @@
-#include <cassert> // assert
-#include <memory>  // std::make_unique, std::unique_ptr
-#include <sstream> // std::stringstream
-#include <utility> // std::forward
-#include <vector>  // std::vector
+#include <cassert>  // assert
+#include <memory>   // std::make_unique, std::unique_ptr
+#include <string>   // std::to_string
+#include <utility>  // std::forward
+#include <vector>   // std::vector
 
 #include <entt/entt.hpp>
+
+namespace rl {
 #include <raylib.h>
+}
 
 struct StateManager;
 
 struct State {
   virtual ~State() {}
-  virtual auto update(StateManager &sm) -> void = 0;
-  virtual auto draw() const -> void = 0;
+  virtual auto update(StateManager& sm) -> void = 0;
+  virtual auto draw() -> void = 0;
   virtual inline auto draw_previous() const -> bool { return false; }
 };
 
 using StatePtr = std::unique_ptr<State>;
 
 struct StateManager {
-private:
+ private:
   std::vector<StatePtr> states_;
 
-public:
-  auto push(StatePtr &&st) -> void { states_.push_back(std::move(st)); }
+ public:
+  auto push(StatePtr&& st) -> void { states_.push_back(std::move(st)); }
 
   auto pop() -> void { states_.pop_back(); }
 
-  auto replace(StatePtr &&st) {
+  auto replace(StatePtr&& st) {
     pop();
     push(std::forward<StatePtr>(st));
   }
@@ -50,8 +53,20 @@ public:
   inline auto empty() const -> bool { return states_.empty(); }
 };
 
+struct OverState : public State {
+  auto update(StateManager& sm) -> void override {
+    if (rl::IsKeyPressed(rl::KEY_SPACE)) {
+      sm.pop();
+    }
+  }
+  auto draw() -> void override {
+    rl::DrawText("over", 10, 10, 20, rl::LIGHTGRAY);
+  }
+  inline auto draw_previous() const -> bool override { return true; }
+};
+
 struct StartState : public State {
-  entt::registry registry;
+  entt::registry world;
   struct Pos {
     float x;
     float y;
@@ -63,67 +78,58 @@ struct StartState : public State {
 
   StartState() {
     for (auto i = 0u; i < 10u; ++i) {
-      const auto entity = registry.create();
-      registry.emplace<Pos>(entity, i * 1.f, i * 1.f);
+      const auto entity = world.create();
+      world.emplace<Pos>(entity, i * 1.f, i * 1.f);
       if (i % 2 == 0) {
-        registry.emplace<Vel>(entity, i * .1f, i * .1f);
+        world.emplace<Vel>(entity, i * 1.f, i * 1.f);
       }
     }
   }
 
-  auto update(StateManager &sm) -> void override {
-    registry.view<Pos, Vel>().each([](auto &pos, auto &vel) {
-      pos.x += vel.x;
-      pos.y += vel.y;
+  auto update(StateManager& sm) -> void override {
+    world.view<Pos, Vel>().each([](auto& pos, auto& vel) {
+      pos.x += vel.x * rl::GetFrameTime();
+      pos.y += vel.y * rl::GetFrameTime();
+    });
+
+    if (rl::IsKeyPressed(rl::KEY_SPACE)) {
+      sm.push(std::make_unique<OverState>());
+    }
+  }
+
+  auto draw() -> void override {
+    rl::DrawText("borealis", 190, 200, 20, rl::LIGHTGRAY);
+
+    world.view<Pos>().each([](const auto& pos) {
+      rl::DrawRectangle(pos.x, pos.y, 1, 1, rl::WHITE);
     });
   }
-
-  auto draw() const -> void override {
-    DrawText("borealis", 190, 200, 20, LIGHTGRAY);
-
-    int i = 0;
-    registry.view<Pos>().each([&i](const auto &pos) {
-      std::stringstream stream;
-      stream << pos.x << " " << pos.y;
-      auto as_str = stream.str();
-      DrawText(as_str.c_str(), 10, 10 * ++i, 10, WHITE);
-    });
-  }
-};
-
-struct MidState : public State {
-  auto update(StateManager &sm) -> void override {}
-  auto draw() const -> void override {
-    DrawText("mid", 200, 10, 20, LIGHTGRAY);
-  }
-};
-
-struct OverState : public State {
-  auto update(StateManager &sm) -> void override {}
-  auto draw() const -> void override {
-    DrawText("over", 10, 10, 20, LIGHTGRAY);
-  }
-  inline auto draw_previous() const -> bool override { return true; }
 };
 
 auto main(void) -> int {
   StateManager sm;
   sm.push(std::make_unique<StartState>());
-  // sm.push(std::make_unique<MidState>());
-  // sm.push(std::make_unique<OverState>());
 
-  InitWindow(800, 450, "borealis");
+  rl::InitWindow(800, 450, "borealis");
+  // rl::SetTargetFPS(60);
 
-  while (!WindowShouldClose() && !sm.empty()) {
+  while (!rl::WindowShouldClose() && !sm.empty()) {
     sm.update();
 
-    BeginDrawing();
-    ClearBackground(BLACK);
+    rl::BeginDrawing();
+    rl::ClearBackground(rl::BLACK);
+#ifdef DEBUG
+    const auto fps_text = std::to_string(rl::GetFPS());
+    auto fps_color = rl::GREEN;
+    fps_color.a = 127;
+    rl::DrawText(fps_text.data(), 800 - rl::MeasureText(fps_text.data(), 20), 0,
+                 20, fps_color);
+#endif  // DEBUG
     sm.draw();
-    EndDrawing();
+    rl::EndDrawing();
   }
 
-  CloseWindow();
+  rl::CloseWindow();
 
   return 0;
 }
