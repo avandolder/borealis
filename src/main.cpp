@@ -1,17 +1,17 @@
-#include <cassert>  // assert
-#include <memory>   // std::make_unique, std::unique_ptr
-#include <string>   // std::to_string
-#include <utility>  // std::forward
-#include <vector>   // std::vector
-
 #include <raylib.h>
 #include <entt/entt.hpp>
 
-#include "State.hpp"
-#include "StateManager.hpp"
-#include "TileMapManager.hpp"
+import<cassert>;
+import<memory>;
+import<string>;
+import<utility>;
+import<vector>;
 
-struct OverState final : public State {
+import state;
+import state_manager;
+import tile_map_manager;
+
+struct OverState final : public State<StateManager> {
   auto update(StateManager& sm) -> void override {
     if (IsKeyPressed(KEY_SPACE)) {
       sm.pop();
@@ -21,7 +21,7 @@ struct OverState final : public State {
   auto draw_previous() -> bool override { return true; }
 };
 
-struct StartState final : public State {
+struct StartState final : public State<StateManager> {
   entt::registry world;
   struct Pos {
     float x;

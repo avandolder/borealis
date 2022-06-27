@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.20)
+cmake_minimum_required(VERSION 3.23)
 project(borealis CXX)
 
 set(CMAKE_C_STANDARD 11)
@@ -52,14 +52,17 @@ if (NOT tmx_FOUND)
 endif()
 
 add_executable(${PROJECT_NAME}
+    src/state.mpp
+    src/state_manager.mpp
+    src/tile_map.mpp
+    src/tile_map_manager.mpp
     src/main.cpp
-    src/TileMap.cpp
-    src/TileMapManager.cpp
 )
-#install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION ./bin)
+
+set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 20)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE raylib tmx)
-target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -Werror -pedantic)
+target_compile_options(${PROJECT_NAME} PRIVATE -fmodules-ts -Wall -Wextra -Werror -pedantic)
 target_compile_definitions(${PROJECT_NAME} PUBLIC DEBUG="")
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)

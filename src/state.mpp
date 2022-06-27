@@ -1,0 +1,9 @@
+export module state;
+
+export template <class Updater>
+struct State {
+  virtual ~State() {}
+  virtual auto update(Updater& sm) -> void = 0;
+  virtual auto draw() -> void = 0;
+  virtual auto draw_previous() -> bool { return false; }
+};

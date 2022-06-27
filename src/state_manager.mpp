@@ -1,15 +1,15 @@
-#ifndef STATE_MANAGER_HPP
-#define STATE_MANAGER_HPP
+export module state_manager;
 
-#include <cassert>
-#include <memory>
-#include <ranges>
-#include <vector>
+import<cassert>;
+import<memory>;
+import<ranges>;
+import<vector>;
 
-#include "State.hpp"
+import state;
 
-struct StateManager final {
+export struct StateManager final {
  private:
+  using StatePtr = std::unique_ptr<State<StateManager>>;
   std::vector<StatePtr> states_;
 
  public:
@@ -37,5 +37,3 @@ struct StateManager final {
 
   inline auto empty() const -> bool { return states_.empty(); }
 };
-
-#endif /* STATE_MANAGER_HPP */
