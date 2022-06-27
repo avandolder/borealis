@@ -4,68 +4,24 @@
 #include <utility>  // std::forward
 #include <vector>   // std::vector
 
+#include <raylib.h>
 #include <entt/entt.hpp>
 
-namespace rl {
-#include <raylib.h>
-}
+#include "State.hpp"
+#include "StateManager.hpp"
+#include "TileMapManager.hpp"
 
-struct StateManager;
-
-struct State {
-  virtual ~State() {}
-  virtual auto update(StateManager& sm) -> void = 0;
-  virtual auto draw() -> void = 0;
-  virtual inline auto draw_previous() const -> bool { return false; }
-};
-
-using StatePtr = std::unique_ptr<State>;
-
-struct StateManager {
- private:
-  std::vector<StatePtr> states_;
-
- public:
-  auto push(StatePtr&& st) -> void { states_.push_back(std::move(st)); }
-
-  auto pop() -> void { states_.pop_back(); }
-
-  auto replace(StatePtr&& st) {
-    pop();
-    push(std::forward<StatePtr>(st));
-  }
-
-  auto update() -> void {
-    assert(!states_.empty());
-    states_.back()->update(*this);
-  }
-
-  auto draw() -> void {
-    assert(!states_.empty());
-    auto iter = --states_.cend();
-    for (; iter != states_.cbegin() && (*iter)->draw_previous(); --iter) {
-    }
-    do {
-      (*iter)->draw();
-    } while (++iter != states_.cend());
-  }
-
-  inline auto empty() const -> bool { return states_.empty(); }
-};
-
-struct OverState : public State {
+struct OverState final : public State {
   auto update(StateManager& sm) -> void override {
-    if (rl::IsKeyPressed(rl::KEY_SPACE)) {
+    if (IsKeyPressed(KEY_SPACE)) {
       sm.pop();
     }
   }
-  auto draw() -> void override {
-    rl::DrawText("over", 10, 10, 20, rl::LIGHTGRAY);
-  }
-  inline auto draw_previous() const -> bool override { return true; }
+  auto draw() -> void override { DrawText("over", 10, 10, 20, LIGHTGRAY); }
+  auto draw_previous() -> bool override { return true; }
 };
 
-struct StartState : public State {
+struct StartState final : public State {
   entt::registry world;
   struct Pos {
     float x;
@@ -88,48 +44,66 @@ struct StartState : public State {
 
   auto update(StateManager& sm) -> void override {
     world.view<Pos, Vel>().each([](auto& pos, auto& vel) {
-      pos.x += vel.x * rl::GetFrameTime();
-      pos.y += vel.y * rl::GetFrameTime();
+      pos.x += vel.x * GetFrameTime();
+      pos.y += vel.y * GetFrameTime();
     });
 
-    if (rl::IsKeyPressed(rl::KEY_SPACE)) {
+    if (IsKeyPressed(KEY_SPACE)) {
       sm.push(std::make_unique<OverState>());
+    } else if (IsKeyPressed(KEY_ENTER)) {
+      sm.pop();
     }
   }
 
   auto draw() -> void override {
-    rl::DrawText("borealis", 190, 200, 20, rl::LIGHTGRAY);
+    DrawText("borealis", 190, 200, 20, LIGHTGRAY);
 
-    world.view<Pos>().each([](const auto& pos) {
-      rl::DrawRectangle(pos.x, pos.y, 1, 1, rl::WHITE);
-    });
+    world.view<Pos>().each(
+        [](const auto& pos) { DrawRectangle(pos.x, pos.y, 1, 1, WHITE); });
   }
 };
 
 auto main(void) -> int {
+  InitWindow(800, 450, "borealis");
+  SetTargetFPS(60);
+
   StateManager sm;
   sm.push(std::make_unique<StartState>());
 
-  rl::InitWindow(800, 450, "borealis");
-  // rl::SetTargetFPS(60);
+  TileMapManager tm;
 
-  while (!rl::WindowShouldClose() && !sm.empty()) {
+  Camera2D camera = {
+      .offset = {0, 0},
+      .target = {0, 0},
+      .rotation = 0.0f,
+      .zoom = 2.0f,
+  };
+
+  while (!WindowShouldClose() && !sm.empty()) {
     sm.update();
 
-    rl::BeginDrawing();
-    rl::ClearBackground(rl::BLACK);
+    BeginDrawing();
+    ClearBackground(BLACK);
+
 #ifdef DEBUG
-    const auto fps_text = std::to_string(rl::GetFPS());
-    auto fps_color = rl::GREEN;
-    fps_color.a = 127;
-    rl::DrawText(fps_text.data(), 800 - rl::MeasureText(fps_text.data(), 20), 0,
-                 20, fps_color);
+    const auto fps_text = std::to_string(GetFPS());
+    const auto fps_color = []() {
+      auto color = GREEN;
+      color.a = 127;
+      return color;
+    }();
+    DrawText(fps_text.data(), 800 - MeasureText(fps_text.data(), 16), 0, 16,
+             fps_color);
 #endif  // DEBUG
+
+    BeginMode2D(camera);
     sm.draw();
-    rl::EndDrawing();
+    EndMode2D();
+
+    EndDrawing();
   }
 
-  rl::CloseWindow();
+  CloseWindow();
 
   return 0;
 }

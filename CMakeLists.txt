@@ -40,12 +40,25 @@ if (NOT EnTT_FOUND)
     FetchContent_MakeAvailable(EnTT)
 endif()
 
+find_package(tmx QUIET)
+if (NOT tmx_FOUND)
+    include(FetchContent)
+    FetchContent_Declare(
+        tmx
+        GIT_REPOSITORY https://github.com/baylej/tmx
+        GIT_TAG 268f1cdb8c4811c6aac5addf7c4e7063342d3af1
+    )
+    FetchContent_MakeAvailable(tmx)
+endif()
+
 add_executable(${PROJECT_NAME}
     src/main.cpp
+    src/TileMap.cpp
+    src/TileMapManager.cpp
 )
 #install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION ./bin)
 
-target_link_libraries(${PROJECT_NAME} PRIVATE raylib)
+target_link_libraries(${PROJECT_NAME} PRIVATE raylib tmx)
 target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -Werror -pedantic)
 target_compile_definitions(${PROJECT_NAME} PUBLIC DEBUG="")
 
