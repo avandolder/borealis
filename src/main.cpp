@@ -4,24 +4,26 @@
 #include <utility>  // std::forward
 #include <vector>   // std::vector
 
-#include <raylib.h>
 #include <entt/entt.hpp>
+#include "raylib.hpp"
 
 #include "State.hpp"
 #include "StateManager.hpp"
 #include "TileMapManager.hpp"
 
-struct OverState final : public State {
+struct OverState final : public State<StateManager> {
   auto update(StateManager& sm) -> void override {
-    if (IsKeyPressed(KEY_SPACE)) {
+    if (rl::IsKeyPressed(rl::KEY_SPACE)) {
       sm.pop();
     }
   }
-  auto draw() -> void override { DrawText("over", 10, 10, 20, LIGHTGRAY); }
+  auto draw() -> void override {
+    rl::DrawText("over", 10, 10, 20, rl::LIGHTGRAY);
+  }
   auto draw_previous() -> bool override { return true; }
 };
 
-struct StartState final : public State {
+struct StartState final : public State<StateManager> {
   entt::registry world;
   struct Pos {
     float x;
@@ -44,66 +46,67 @@ struct StartState final : public State {
 
   auto update(StateManager& sm) -> void override {
     world.view<Pos, Vel>().each([](auto& pos, auto& vel) {
-      pos.x += vel.x * GetFrameTime();
-      pos.y += vel.y * GetFrameTime();
+      pos.x += vel.x * rl::GetFrameTime();
+      pos.y += vel.y * rl::GetFrameTime();
     });
 
-    if (IsKeyPressed(KEY_SPACE)) {
+    if (rl::IsKeyPressed(rl::KEY_SPACE)) {
       sm.push(std::make_unique<OverState>());
-    } else if (IsKeyPressed(KEY_ENTER)) {
+    } else if (rl::IsKeyPressed(rl::KEY_ENTER)) {
       sm.pop();
     }
   }
 
   auto draw() -> void override {
-    DrawText("borealis", 190, 200, 20, LIGHTGRAY);
+    rl::DrawText("borealis", 190, 200, 20, rl::LIGHTGRAY);
 
-    world.view<Pos>().each(
-        [](const auto& pos) { DrawRectangle(pos.x, pos.y, 1, 1, WHITE); });
+    world.view<Pos>().each([](const auto& pos) {
+      rl::DrawRectangle(pos.x, pos.y, 1, 1, rl::WHITE);
+    });
   }
 };
 
 auto main(void) -> int {
-  InitWindow(800, 450, "borealis");
-  SetTargetFPS(60);
+  rl::InitWindow(800, 450, "borealis");
+  rl::SetTargetFPS(60);
 
   StateManager sm;
   sm.push(std::make_unique<StartState>());
 
   TileMapManager tm;
 
-  Camera2D camera = {
+  rl::Camera2D camera = {
       .offset = {0, 0},
       .target = {0, 0},
       .rotation = 0.0f,
       .zoom = 2.0f,
   };
 
-  while (!WindowShouldClose() && !sm.empty()) {
+  while (!rl::WindowShouldClose() && !sm.empty()) {
     sm.update();
 
-    BeginDrawing();
-    ClearBackground(BLACK);
+    rl::BeginDrawing();
+    rl::ClearBackground(rl::BLACK);
 
 #ifdef DEBUG
-    const auto fps_text = std::to_string(GetFPS());
+    const auto fps_text = std::to_string(rl::GetFPS());
     const auto fps_color = []() {
-      auto color = GREEN;
+      auto color = rl::GREEN;
       color.a = 127;
       return color;
     }();
-    DrawText(fps_text.data(), 800 - MeasureText(fps_text.data(), 16), 0, 16,
-             fps_color);
+    rl::DrawText(fps_text.data(), 800 - rl::MeasureText(fps_text.data(), 16), 0,
+                 16, fps_color);
 #endif  // DEBUG
 
     BeginMode2D(camera);
     sm.draw();
-    EndMode2D();
+    rl::EndMode2D();
 
-    EndDrawing();
+    rl::EndDrawing();
   }
 
-  CloseWindow();
+  rl::CloseWindow();
 
   return 0;
 }

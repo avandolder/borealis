@@ -10,6 +10,7 @@
 
 struct StateManager final {
  private:
+  using StatePtr = std::unique_ptr<State<StateManager>>;
   std::vector<StatePtr> states_;
 
  public:

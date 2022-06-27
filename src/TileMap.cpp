@@ -1,11 +1,11 @@
-#include <raylib.h>
+#include "raylib.hpp"
 #include "tmx.hpp"
 
 #include "TileMap.hpp"
 
-static inline auto int_to_color(int color) -> Color {
+static inline auto int_to_color(int color) -> rl::Color {
   auto res = tmx_col_to_bytes(color);
-  return *reinterpret_cast<Color*>(&res);
+  return *reinterpret_cast<rl::Color*>(&res);
 }
 
 TileMap::TileMap(const char* path, tmx_resource_manager* mgr)

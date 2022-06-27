@@ -2,7 +2,7 @@
 #define TMX_HPP
 
 #define TMXEXPORT
-#include "tmx.h"
+#include <tmx.h>
 #undef TMXEXPORT
 
 #endif /* TMX_HPP */
