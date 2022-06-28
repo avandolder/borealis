@@ -3,9 +3,7 @@
 
 #include <memory>
 
-struct _tmx_map;
-using tmx_map = struct _tmx_map;
-using tmx_resource_manager = void;
+#include <tmx.h>
 
 struct TileMap final {
  private:

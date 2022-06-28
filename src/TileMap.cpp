@@ -1,5 +1,5 @@
 #include "raylib.hpp"
-#include "tmx.hpp"
+#include <tmx.h>
 
 #include "TileMap.hpp"
 
