@@ -3,7 +3,6 @@
 
 #include <cassert>
 #include <memory>
-#include <ranges>
 #include <vector>
 
 #include "State.hpp"
@@ -28,11 +27,11 @@ struct StateManager final {
   }
 
   auto draw() -> void {
-    for (auto& st : states_ | std::views::reverse) {
-      st->draw();
-      if (!st->draw_previous())
-        break;
-    }
+    auto itr = states_.cend();
+    while (itr != states_.cbegin() && (*--itr)->draw_previous())
+      ;
+    for (; itr != states_.cend(); ++itr)
+      (*itr)->draw();
   }
 
   inline auto empty() const -> bool { return states_.empty(); }

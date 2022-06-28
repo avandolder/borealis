@@ -5,8 +5,6 @@ set(CMAKE_C_STANDARD 17)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-set(CMAKE_C_COMPILER gcc)
-
 find_package(raylib 4.0.0 QUIET)
 if (NOT raylib_FOUND)
     include(FetchContent)
@@ -55,7 +53,7 @@ file(GLOB SRC_FILES src/*.cpp)
 add_executable(${PROJECT_NAME} ${SRC_FILES})
 
 target_link_libraries(${PROJECT_NAME} PRIVATE raylib tmx)
-target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -Werror -pedantic)
-target_compile_definitions(${PROJECT_NAME} PUBLIC DEBUG="")
+target_compile_options(${PROJECT_NAME} PRIVATE -g -Wall -Wextra -Werror -pedantic)
+target_compile_definitions(${PROJECT_NAME} PUBLIC DEBUG)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)

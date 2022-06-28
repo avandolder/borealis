@@ -1,12 +1,13 @@
-#include "raylib.hpp"
 #include <tmx.h>
+#include "raylib.hpp"
 
 #include "TileMap.hpp"
 #include "TileMapManager.hpp"
 
 TileMapManager::TileMapManager() : mgr_(tmx_make_resource_manager()) {
   tmx_img_load_func = [](const char* path) -> void* {
-    return new auto(rl::LoadTexture(path));
+    auto t = new auto(rl::LoadTexture(path));
+    return t;
   };
 
   tmx_img_free_func = [](void* ptr) -> void {
@@ -17,7 +18,8 @@ TileMapManager::TileMapManager() : mgr_(tmx_make_resource_manager()) {
 }
 
 TileMapManager::~TileMapManager() {
-  tmx_free_resource_manager(mgr_);
+  tmaps_.clear();
+  //tmx_free_resource_manager(mgr_);
 }
 
 auto TileMapManager::get_map(const char* path) -> TileMap& {

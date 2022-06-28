@@ -9,11 +9,18 @@
 
 #include "State.hpp"
 #include "StateManager.hpp"
+#include "TileMap.hpp"
 #include "TileMapManager.hpp"
 
 struct GameData final {
   StateManager<GameData> sm;
   TileMapManager tm;
+
+  struct {
+    int width = 800;
+    int height = 450;
+    int fps = 75;
+  } config;
 };
 
 struct OverState final : public State<GameData> {
@@ -41,7 +48,18 @@ struct StartState final : public State<GameData> {
     float y;
   };
 
-  StartState() {
+  TileMap& tmap;
+  rl::Camera2D camera;
+
+  StartState(TileMap& tmap)
+      : tmap(tmap),
+        camera{
+            .offset{rl::GetScreenWidth() / 2.f,
+                    rl::GetScreenHeight() / 2.f},
+            .target = to_vector(tmap.size()) / 2.f,
+            .rotation = 0.0f,
+            .zoom = 2.0f,
+        } {
     for (auto i = 0u; i < 10u; ++i) {
       const auto entity = world.create();
       world.emplace<Pos>(entity, i * 1.f, i * 1.f);
@@ -52,9 +70,11 @@ struct StartState final : public State<GameData> {
   }
 
   auto update(GameData& game) -> void override {
-    world.view<Pos, Vel>().each([](auto& pos, auto& vel) {
-      pos.x += vel.x * rl::GetFrameTime();
-      pos.y += vel.y * rl::GetFrameTime();
+    const auto dt = rl::GetFrameTime();
+
+    world.view<Pos, Vel>().each([=](auto& pos, auto& vel) {
+      pos.x += vel.x * dt;
+      pos.y += vel.y * dt;
     });
 
     if (rl::IsKeyPressed(rl::KEY_SPACE)) {
@@ -62,30 +82,37 @@ struct StartState final : public State<GameData> {
     } else if (rl::IsKeyPressed(rl::KEY_ENTER)) {
       game.sm.pop();
     }
+
+    auto dx = rl::IsKeyDown(rl::KEY_LEFT)    ? -1.f
+              : rl::IsKeyDown(rl::KEY_RIGHT) ? 1.f
+                                             : 0.f;
+    auto dy = rl::IsKeyDown(rl::KEY_UP)     ? -1.f
+              : rl::IsKeyDown(rl::KEY_DOWN) ? 1.f
+                                            : 0.f;
+    camera.target += normalize({dx, dy}) * 100 * dt;
   }
 
   auto draw() -> void override {
-    rl::DrawText("borealis", 190, 200, 20, rl::LIGHTGRAY);
+    rl::BeginMode2D(camera);
+
+    tmap.draw(camera);
 
     world.view<Pos>().each([](const auto& pos) {
       rl::DrawRectangle(pos.x, pos.y, 1, 1, rl::WHITE);
     });
+
+    rl::EndMode2D();
   }
 };
 
 auto main(void) -> int {
-  rl::InitWindow(800, 450, "borealis");
-  rl::SetTargetFPS(60);
-
   GameData game;
-  game.sm.push(std::make_unique<StartState>());
+  rl::InitWindow(game.config.width, game.config.height, "borealis");
+  rl::SetTargetFPS(rl::GetMonitorRefreshRate(rl::GetCurrentMonitor()));
+  rl::SetWindowState(rl::FLAG_VSYNC_HINT);
 
-  rl::Camera2D camera = {
-      .offset = {0, 0},
-      .target = {0, 0},
-      .rotation = 0.0f,
-      .zoom = 2.0f,
-  };
+  game.sm.push(
+      std::make_unique<StartState>(game.tm.get_map("res/island.tmx")));
 
   while (!rl::WindowShouldClose() && !game.sm.empty()) {
     game.sm.update(game);
@@ -93,20 +120,17 @@ auto main(void) -> int {
     rl::BeginDrawing();
     rl::ClearBackground(rl::BLACK);
 
+    game.sm.draw();
+
 #ifdef DEBUG
     {
-      const auto fps_text = std::to_string(rl::GetFPS());
-      auto fps_color = rl::GREEN;
-      fps_color.a = 127;
-      rl::DrawText(fps_text.data(),
-                   800 - rl::MeasureText(fps_text.data(), 16), 0, 16,
-                   fps_color);
+      const auto fps_text{std::to_string(rl::GetFPS())};
+      rl::DrawText(
+          fps_text.data(),
+          game.config.width - rl::MeasureText(fps_text.data(), 16), 0,
+          16, rl::MAGENTA);
     }
-#endif  // DEBUG
-
-    rl::BeginMode2D(camera);
-    game.sm.draw();
-    rl::EndMode2D();
+#endif /* DEBUG */
 
     rl::EndDrawing();
   }
