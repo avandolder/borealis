@@ -8,24 +8,23 @@
 
 #include "State.hpp"
 
+template <class T>
 struct StateManager final {
  private:
-  using StatePtr = std::unique_ptr<State<StateManager>>;
+  using StatePtr = std::unique_ptr<State<T>>;
   std::vector<StatePtr> states_;
 
  public:
   auto push(StatePtr&& st) -> void { states_.push_back(std::move(st)); }
-
   auto pop() -> void { states_.pop_back(); }
-
   auto replace(StatePtr&& st) {
     pop();
     push(std::forward<StatePtr>(st));
   }
 
-  auto update() -> void {
+  auto update(T& t) -> void {
     assert(!states_.empty());
-    states_.back()->update(*this);
+    states_.back()->update(t);
   }
 
   auto draw() -> void {

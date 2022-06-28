@@ -5,10 +5,10 @@
 #include <unordered_map>
 
 struct TileMap;
-using tmx_resource_manager = void;
 
 struct TileMapManager final {
  private:
+  using tmx_resource_manager = void;
   tmx_resource_manager* mgr_;
   std::unordered_map<std::string, TileMap> tmaps_;
 

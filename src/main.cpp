@@ -11,19 +11,26 @@
 #include "StateManager.hpp"
 #include "TileMapManager.hpp"
 
-struct OverState final : public State<StateManager> {
-  auto update(StateManager& sm) -> void override {
+struct GameData final {
+  StateManager<GameData> sm;
+  TileMapManager tm;
+};
+
+struct OverState final : public State<GameData> {
+  auto update(GameData& ud) -> void override {
     if (rl::IsKeyPressed(rl::KEY_SPACE)) {
-      sm.pop();
+      ud.sm.pop();
     }
   }
+
   auto draw() -> void override {
     rl::DrawText("over", 10, 10, 20, rl::LIGHTGRAY);
   }
+
   auto draw_previous() -> bool override { return true; }
 };
 
-struct StartState final : public State<StateManager> {
+struct StartState final : public State<GameData> {
   entt::registry world;
   struct Pos {
     float x;
@@ -44,16 +51,16 @@ struct StartState final : public State<StateManager> {
     }
   }
 
-  auto update(StateManager& sm) -> void override {
+  auto update(GameData& ud) -> void override {
     world.view<Pos, Vel>().each([](auto& pos, auto& vel) {
       pos.x += vel.x * rl::GetFrameTime();
       pos.y += vel.y * rl::GetFrameTime();
     });
 
     if (rl::IsKeyPressed(rl::KEY_SPACE)) {
-      sm.push(std::make_unique<OverState>());
+      ud.sm.push(std::make_unique<OverState>());
     } else if (rl::IsKeyPressed(rl::KEY_ENTER)) {
-      sm.pop();
+      ud.sm.pop();
     }
   }
 
@@ -70,10 +77,8 @@ auto main(void) -> int {
   rl::InitWindow(800, 450, "borealis");
   rl::SetTargetFPS(60);
 
-  StateManager sm;
-  sm.push(std::make_unique<StartState>());
-
-  TileMapManager tm;
+  GameData game;
+  game.sm.push(std::make_unique<StartState>());
 
   rl::Camera2D camera = {
       .offset = {0, 0},
@@ -82,15 +87,15 @@ auto main(void) -> int {
       .zoom = 2.0f,
   };
 
-  while (!rl::WindowShouldClose() && !sm.empty()) {
-    sm.update();
+  while (!rl::WindowShouldClose() && !game.sm.empty()) {
+    game.sm.update(game);
 
     rl::BeginDrawing();
     rl::ClearBackground(rl::BLACK);
 
 #ifdef DEBUG
     const auto fps_text = std::to_string(rl::GetFPS());
-    const auto fps_color = []() {
+    const auto fps_color = [] {
       auto color = rl::GREEN;
       color.a = 127;
       return color;
@@ -99,8 +104,8 @@ auto main(void) -> int {
                  16, fps_color);
 #endif  // DEBUG
 
-    BeginMode2D(camera);
-    sm.draw();
+    rl::BeginMode2D(camera);
+    game.sm.draw();
     rl::EndMode2D();
 
     rl::EndDrawing();
