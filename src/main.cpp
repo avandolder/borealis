@@ -94,14 +94,17 @@ auto main(void) -> int {
     rl::ClearBackground(rl::BLACK);
 
 #ifdef DEBUG
-    const auto fps_text = std::to_string(rl::GetFPS());
-    const auto fps_color = [] {
-      auto color = rl::GREEN;
-      color.a = 127;
-      return color;
-    }();
-    rl::DrawText(fps_text.data(), 800 - rl::MeasureText(fps_text.data(), 16), 0,
-                 16, fps_color);
+    {
+      const auto fps_text = std::to_string(rl::GetFPS());
+      const auto fps_color = [] {
+        auto color = rl::GREEN;
+        color.a = 127;
+        return color;
+      }();
+      rl::DrawText(fps_text.data(),
+                   800 - rl::MeasureText(fps_text.data(), 16), 0, 16,
+                   fps_color);
+    }
 #endif  // DEBUG
 
     rl::BeginMode2D(camera);
