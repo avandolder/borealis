@@ -3,7 +3,7 @@
 #include <tmx.h>
 #include "raylib.hpp"
 
-#include "TileMap.hpp"
+#include "tile_map.hpp"
 
 const auto LINE_THICKNESS = 2.5f;
 

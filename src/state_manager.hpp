@@ -5,7 +5,7 @@
 #include <memory>
 #include <vector>
 
-#include "State.hpp"
+#include "state.hpp"
 
 template <class T>
 struct StateManager final {

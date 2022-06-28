@@ -1,8 +1,8 @@
 #include <tmx.h>
 #include "raylib.hpp"
 
-#include "TileMap.hpp"
-#include "TileMapManager.hpp"
+#include "tile_map.hpp"
+#include "tile_map_manager.hpp"
 
 TileMapManager::TileMapManager() : mgr_(tmx_make_resource_manager()) {
   tmx_img_load_func = [](const char* path) -> void* {

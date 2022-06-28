@@ -7,10 +7,10 @@
 #include <entt/entt.hpp>
 #include "raylib.hpp"
 
-#include "State.hpp"
-#include "StateManager.hpp"
-#include "TileMap.hpp"
-#include "TileMapManager.hpp"
+#include "state.hpp"
+#include "state_manager.hpp"
+#include "tile_map.hpp"
+#include "tile_map_manager.hpp"
 
 struct GameData final {
   StateManager<GameData> sm;
