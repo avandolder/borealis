@@ -67,7 +67,7 @@ auto TileMap::draw_layers(tmx_layer* layers, rl::Camera2D& camera)
         rl::DrawTexture(*reinterpret_cast<rl::Texture*>(
                             layer->content.image->resource_image),
                         0, 0, rl::WHITE);
-      default: break;
+      case L_NONE: break;
     }
   }
 }
@@ -102,10 +102,8 @@ inline auto TileMap::draw_tile(tmx_tile* tile,
                                rl::Color tint) -> void {
   const auto ts = tile->tileset;
   const auto im = tile->image;
-  const float x = tile->ul_x;
-  const float y = tile->ul_y;
-  const float w = ts->tile_width;
-  const float h = ts->tile_height;
+  const float x = tile->ul_x, y = tile->ul_y;
+  const float w = ts->tile_width, h = ts->tile_height;
 
   const auto image =
       im ? im->resource_image : ts->image->resource_image;
@@ -147,7 +145,7 @@ auto TileMap::draw_objects(tmx_layer* layer,
                          head->width / 2.0, head->height / 2.0, color);
         break;
       case OT_TEXT:
-      default: break;
+      case OT_NONE: break;
     }
   }
 }
