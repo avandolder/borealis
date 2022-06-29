@@ -1,8 +1,9 @@
-#include <cassert>  // assert
-#include <memory>   // std::make_unique, std::unique_ptr
-#include <string>   // std::to_string
-#include <utility>  // std::forward
-#include <vector>   // std::vector
+#include <algorithm>  // clamp
+#include <cassert>    // assert
+#include <memory>     // make_unique, unique_ptr
+#include <string>     // to_string
+#include <utility>    // forward
+#include <vector>     // vector
 
 #include <entt/entt.hpp>
 #include "raylib.hpp"
@@ -17,8 +18,8 @@ struct GameData final {
   TileMapManager tm;
 
   struct {
-    int width = 800;
-    int height = 450;
+    int width = 1280;
+    int height = 720;
     int fps = 75;
   } config;
 };
@@ -89,7 +90,15 @@ struct StartState final : public State<GameData> {
     auto dy = rl::IsKeyDown(rl::KEY_UP)     ? -1.f
               : rl::IsKeyDown(rl::KEY_DOWN) ? 1.f
                                             : 0.f;
-    camera.target += normalize({dx, dy}) * 100 * dt;
+    camera.target += normalize({dx, dy}) * 200 * dt;
+
+    const auto tmap_size = to_vector(tmap.size());
+    camera.target = {
+        std::clamp(camera.target.x, camera.offset.x / camera.zoom,
+                   tmap_size.x - camera.offset.x / camera.zoom),
+        std::clamp(camera.target.y, camera.offset.y / camera.zoom,
+                   tmap_size.y - camera.offset.y / camera.zoom),
+    };
   }
 
   auto draw() -> void override {
