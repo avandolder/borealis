@@ -34,7 +34,6 @@ TileMap::TileMap(TileMap&& other) : path_(other.path_) {
 }
 
 TileMap::~TileMap() {
-  if (!tmap_) return;
   tmx_map_free(tmap_.release());
 }
 
