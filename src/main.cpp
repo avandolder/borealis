@@ -1,28 +1,21 @@
 #include <algorithm>  // clamp
 #include <cassert>    // assert
+#include <cstdlib>    // exit
+#include <iostream>   // cerr, endl
 #include <memory>     // make_unique, unique_ptr
 #include <string>     // to_string
 #include <utility>    // forward
 #include <vector>     // vector
 
+#include <tclap/CmdLine.h>
 #include <entt/entt.hpp>
 #include "raylib.hpp"
 
+#include "game_data.hpp"
 #include "state.hpp"
 #include "state_manager.hpp"
 #include "tile_map.hpp"
 #include "tile_map_manager.hpp"
-
-struct GameData final {
-  StateManager<GameData> sm;
-  TileMapManager tm;
-
-  struct {
-    int width = 1280;
-    int height = 720;
-    int fps = 75;
-  } config;
-};
 
 struct OverState final : public State<GameData> {
   auto update(GameData& game) -> void override {
@@ -114,18 +107,44 @@ struct StartState final : public State<GameData> {
   }
 };
 
-auto main(void) -> int {
+auto parse_commands(int argc, char** argv) -> Config {
+  try {
+    using namespace TCLAP;
+    CmdLine cmd("", ' ', "0.1", false);
+    ValueArg<int> fps("f", "fps", "", false, Config::DEFAULT_FPS, "",
+                      cmd);
+    ValueArg<int> width("w", "width", "", false, Config::DEFAULT_WIDTH,
+                        "", cmd);
+    ValueArg<int> height("h", "height", "", false,
+                         Config::DEFAULT_HEIGHT, "", cmd);
+
+    cmd.parse(argc, argv);
+    return {
+        .width = width.getValue(),
+        .height = height.getValue(),
+        .fps = fps.getValue(),
+    };
+  } catch (TCLAP::ArgException& e) {
+    std::cerr << "[ERROR] " << e.error() << " for arg " << e.argId()
+              << std::endl;
+    std::exit(EXIT_FAILURE);
+  }
+}
+
+auto main(int argc, char** argv) -> int {
+  Config config{parse_commands(argc, argv)};
+
+  rl::InitWindow(config.width, config.height, "borealis");
+  rl::SetTargetFPS(config.fps);
+  rl::SetWindowState(rl::FLAG_VSYNC_HINT);
+
   {
     // Create the game data within an interior scope so it can be
     // destroyed before the window is closed. Otherwise raylib
     // will segfault.
-    GameData game;
-    auto& [sm, tm, config] = game;
-
-    rl::InitWindow(config.width, config.height, "borealis");
-    rl::SetTargetFPS(
-        rl::GetMonitorRefreshRate(rl::GetCurrentMonitor()));
-    rl::SetWindowState(rl::FLAG_VSYNC_HINT);
+    StateManager<GameData> sm;
+    TileMapManager tm;
+    GameData game{sm, tm, config};
 
     sm.push(std::make_unique<StartState>(tm.get_map("res/island.tmx")));
 
