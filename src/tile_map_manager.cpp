@@ -6,8 +6,7 @@
 
 TileMapManager::TileMapManager() : mgr_(tmx_make_resource_manager()) {
   tmx_img_load_func = [](const char* path) -> void* {
-    auto t = new auto(rl::LoadTexture(path));
-    return t;
+    return new auto(rl::LoadTexture(path));
   };
 
   tmx_img_free_func = [](void* ptr) -> void {
@@ -18,12 +17,10 @@ TileMapManager::TileMapManager() : mgr_(tmx_make_resource_manager()) {
 }
 
 TileMapManager::~TileMapManager() {
-  tmaps_.clear();
-  //tmx_free_resource_manager(mgr_);
+  tmx_free_resource_manager(mgr_);
 }
 
 auto TileMapManager::get_map(const char* path) -> TileMap& {
-  if (tmaps_.contains(path))
-    return tmaps_.at(path);
+  if (tmaps_.contains(path)) return tmaps_.at(path);
   return tmaps_.emplace(path, TileMap(path, mgr_)).first->second;
 }

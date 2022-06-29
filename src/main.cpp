@@ -106,33 +106,40 @@ struct StartState final : public State<GameData> {
 };
 
 auto main(void) -> int {
-  GameData game;
-  rl::InitWindow(game.config.width, game.config.height, "borealis");
-  rl::SetTargetFPS(rl::GetMonitorRefreshRate(rl::GetCurrentMonitor()));
-  rl::SetWindowState(rl::FLAG_VSYNC_HINT);
+  {
+    // Create the game data within an interior scope so it can be
+    // destroyed before the window is closed. Otherwise raylib
+    // will segfault.
+    GameData game;
+    auto& [sm, tm, config] = game;
 
-  game.sm.push(
-      std::make_unique<StartState>(game.tm.get_map("res/island.tmx")));
+    rl::InitWindow(config.width, config.height, "borealis");
+    rl::SetTargetFPS(
+        rl::GetMonitorRefreshRate(rl::GetCurrentMonitor()));
+    rl::SetWindowState(rl::FLAG_VSYNC_HINT);
 
-  while (!rl::WindowShouldClose() && !game.sm.empty()) {
-    game.sm.update(game);
+    sm.push(std::make_unique<StartState>(tm.get_map("res/island.tmx")));
 
-    rl::BeginDrawing();
-    rl::ClearBackground(rl::BLACK);
+    while (!rl::WindowShouldClose() && !sm.empty()) {
+      sm.update(game);
 
-    game.sm.draw();
+      rl::BeginDrawing();
+      rl::ClearBackground(rl::BLACK);
+
+      sm.draw();
 
 #ifdef DEBUG
-    {
-      const auto fps_text{std::to_string(rl::GetFPS())};
-      rl::DrawText(
-          fps_text.data(),
-          game.config.width - rl::MeasureText(fps_text.data(), 16), 0,
-          16, rl::MAGENTA);
-    }
+      {
+        const auto fps_text{std::to_string(rl::GetFPS())};
+        rl::DrawText(
+            fps_text.data(),
+            rl::GetScreenWidth() - rl::MeasureText(fps_text.data(), 16),
+            0, 16, rl::MAGENTA);
+      }
 #endif /* DEBUG */
 
-    rl::EndDrawing();
+      rl::EndDrawing();
+    }
   }
 
   rl::CloseWindow();
