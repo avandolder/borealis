@@ -22,5 +22,5 @@ TileMapManager::~TileMapManager() {
 
 auto TileMapManager::get_map(const char* path) -> TileMap& {
   if (tmaps_.contains(path)) return tmaps_.at(path);
-  return tmaps_.emplace(path, TileMap(path, mgr_)).first->second;
+  return tmaps_.emplace(path, tmx_rcmgr_load(mgr_, path)).first->second;
 }

@@ -10,7 +10,6 @@
 struct TileMap final {
  private:
   std::unique_ptr<tmx_map> tmap_;
-  std::string path_;
 
   auto draw_layers(tmx_layer* layers, rl::Camera2D& camera) -> void;
   auto draw_layer(tmx_layer* layer, rl::Camera2D& camera) -> void;
@@ -23,7 +22,7 @@ struct TileMap final {
   auto draw_polygon(tmx_object* obj, rl::Color color) -> void;
 
  public:
-  TileMap(const char* path, tmx_resource_manager* mgr);
+  TileMap(tmx_map*);
   TileMap(TileMap&&);
   ~TileMap();
 

@@ -14,7 +14,7 @@ struct PauseState final : public State<GameData> {
 
   auto draw() -> void override {
     rl::DrawRectangle(0, 0, rl::GetScreenWidth(), rl::GetScreenHeight(),
-                      {0, 0, 0, 127});
+                      rl::Fade(rl::BLACK, 0.5));
     rl::DrawText("over", 10, 10, 20, rl::LIGHTGRAY);
   }
 

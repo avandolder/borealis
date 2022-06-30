@@ -20,16 +20,15 @@ inline static auto visible_area(rl::Camera2D& camera)
                                  camera)};
 }
 
-TileMap::TileMap(const char* path, tmx_resource_manager* mgr)
-    : tmap_(tmx_rcmgr_load(mgr, path)), path_(path) {
+TileMap::TileMap(tmx_map* tmap) : tmap_(tmap) {
   if (!tmap_) {
-    rl::TraceLog(rl::LOG_ERROR, "Loading map %s failed with: %s", path,
+    rl::TraceLog(rl::LOG_ERROR, "Loading map failed with: %s",
                  tmx_strerr());
     std::exit(EXIT_FAILURE);
   }
 }
 
-TileMap::TileMap(TileMap&& other) : path_(other.path_) {
+TileMap::TileMap(TileMap&& other) {
   tmap_.swap(other.tmap_);
 }
 
@@ -73,8 +72,8 @@ auto TileMap::draw_layers(tmx_layer* layers, rl::Camera2D& camera)
 
 auto TileMap::draw_layer(tmx_layer* layer, rl::Camera2D& camera)
     -> void {
-  auto tint{int_to_color(layer->tintcolor)};
-  tint.a = !tint.a ? layer->opacity : tint.a * layer->opacity;
+  const auto tint{
+      rl::ColorAlpha(int_to_color(layer->tintcolor), layer->opacity)};
 
   const auto [top, bot] = visible_area(camera);
   const float w = tmap_->tile_width;
@@ -115,7 +114,8 @@ auto TileMap::draw_objects(tmx_layer* layer,
                            rl::Camera2D& camera) -> void {
   auto color{int_to_color(objgr->color)};
   auto tint{int_to_color(layer->tintcolor)};
-  tint.a = !tint.a ? layer->opacity : tint.a * layer->opacity;
+  tint = !tint.a ? rl::ColorAlpha(tint, layer->opacity)
+                 : rl::Fade(tint, layer->opacity);
 
   const auto [top, bot] = visible_area(camera);
 
