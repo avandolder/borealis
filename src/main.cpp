@@ -4,11 +4,10 @@
 #include <string>    // to_string
 
 #include <tclap/CmdLine.h>
-#include <entt/entt.hpp>
-#include "raylib.hpp"
 
 #include "game_data.hpp"
 #include "game_state.hpp"
+#include "raylib.hpp"
 #include "state_manager.hpp"
 #include "tile_map_manager.hpp"
 

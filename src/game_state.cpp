@@ -1,5 +1,7 @@
 #include <algorithm>
 
+#include <entt/entt.hpp>
+
 #include "game_data.hpp"
 #include "game_state.hpp"
 #include "pause_state.hpp"
