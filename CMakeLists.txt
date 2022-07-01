@@ -10,7 +10,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 include(FetchContent)
 
-find_package(raylib QUIET)
+find_package(raylib 4.0.0 QUIET)
 if (NOT raylib_FOUND)
     FetchContent_Declare(
         raylib
@@ -20,7 +20,7 @@ if (NOT raylib_FOUND)
     FetchContent_MakeAvailable(raylib)
 endif()
 
-find_package(raylib_cpp QUIET)
+find_package(raylib_cpp 4.2.2 QUIET)
 if (NOT raylib_cpp_FOUND)
     FetchContent_Declare(
         raylib_cpp
@@ -30,7 +30,7 @@ if (NOT raylib_cpp_FOUND)
     FetchContent_MakeAvailable(raylib_cpp)
 endif()
  
-find_package(EnTT QUIET)
+find_package(EnTT 3.10.1 QUIET)
 if (NOT EnTT_FOUND)
     FetchContent_Declare(
         EnTT
@@ -40,7 +40,7 @@ if (NOT EnTT_FOUND)
     FetchContent_MakeAvailable(EnTT)
 endif()
 
-find_package(tmx QUIET)
+find_package(tmx 1.2.0 QUIET)
 if (NOT tmx_FOUND)
     FetchContent_Declare(
         tmx
@@ -50,20 +50,38 @@ if (NOT tmx_FOUND)
     FetchContent_MakeAvailable(tmx)
 endif()
 
-find_package(TCLAP QUIET)
+find_package(TCLAP 1.4 QUIET)
 if (NOT TCLAP_FOUND)
     FetchContent_Declare(
         TCLAP
         GIT_REPOSITORY "git://git.code.sf.net/p/tclap/code"
         GIT_TAG 3feeb7b2499b37d9cb80890cadaf7c905a9a50c6
     )
+    set (BUILD_UNITTESTS OFF)
+    set (BUILD_EXAMPLES OFF)
+    set (BUILD_DOC OFF)
+    set (CMAKE_POLICY_DEFAULT_CMP0077 NEW CACHE INTERNAL "")
     FetchContent_MakeAvailable(TCLAP)
 endif()
 
-file(GLOB SRC_FILES src/*.cpp src/*.hpp)
-add_executable(${PROJECT_NAME} ${SRC_FILES})
+find_package(box2d 2.4.1 QUIET)
+if (NOT box2d_FOUND)
+    FetchContent_Declare(
+        box2d
+        GIT_REPOSITORY "https://github.com/erincatto/box2d"
+        GIT_TAG 9dc24a6fd4f32442c4bcf80791de47a0a7d25afb
+    )
+    FetchContent_MakeAvailable(box2d)
+endif()
+
+file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS src/*.cpp src/*.hpp)
+add_executable(${PROJECT_NAME} ${SOURCES})
 
 target_link_libraries(${PROJECT_NAME}
-    PRIVATE raylib raylib_cpp tmx EnTT::EnTT TCLAP)
+    PRIVATE raylib raylib_cpp tmx EnTT::EnTT TCLAP box2d)
 
 target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -pedantic)
+
+if (CMAKE_BUILD_TYPE STREQUAL Debug)
+    target_compile_definitions(${PROJECT_NAME} PRIVATE DEBUG)
+endif()
