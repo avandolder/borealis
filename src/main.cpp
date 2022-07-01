@@ -25,14 +25,13 @@ struct Config final {
 
 auto parse_commands(int argc, char** argv) -> Config {
   try {
-    using namespace TCLAP;
-    CmdLine cmd("", ' ', "0.1", false);
-    ValueArg<int> fps("f", "fps", "", false, Config::DEFAULT_FPS, "",
-                      cmd);
-    ValueArg<int> width("w", "width", "", false, Config::DEFAULT_WIDTH,
-                        "", cmd);
-    ValueArg<int> height("h", "height", "", false,
-                         Config::DEFAULT_HEIGHT, "", cmd);
+    TCLAP::CmdLine cmd("", ' ', "0.1", false);
+    TCLAP::ValueArg<int> fps("f", "fps", "", false, Config::DEFAULT_FPS,
+                             "", cmd);
+    TCLAP::ValueArg<int> width("w", "width", "", false,
+                               Config::DEFAULT_WIDTH, "", cmd);
+    TCLAP::ValueArg<int> height("h", "height", "", false,
+                                Config::DEFAULT_HEIGHT, "", cmd);
 
     cmd.parse(argc, argv);
     return {
@@ -49,9 +48,11 @@ auto parse_commands(int argc, char** argv) -> Config {
 
 auto show_fps(rl::Window& window) -> void {
   const auto fps_text{std::to_string(window.GetFPS())};
-  rl::DrawText(fps_text.data(),
-               window.GetWidth() - rl::MeasureText(fps_text, 16), 0, 16,
-               rl::MAGENTA);
+  const auto fps_text_size = 16;
+  rl::DrawText(
+      fps_text,
+      window.GetWidth() - rl::MeasureText(fps_text, fps_text_size), 0,
+      fps_text_size, rl::MAGENTA);
 }
 
 auto main(int argc, char** argv) -> int {

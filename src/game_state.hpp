@@ -9,10 +9,12 @@
 #include "tile_map.hpp"
 
 struct GameState final : public State<GameData> {
-  entt::registry world;
-  raylib::Camera2D camera;
-  TileMap& tmap;
+ private:
+  entt::registry world_;
+  raylib::Camera2D camera_;
+  TileMap& tmap_;
 
+ public:
   GameState(raylib::Window&, TileMap&);
 
   auto update(GameData game) -> void override;

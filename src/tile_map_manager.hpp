@@ -13,12 +13,16 @@ struct TileMapManager final {
   using tmx_resource_manager = void;
   tmx_resource_manager* mgr_;
   std::unordered_map<std::string, TileMap> tmaps_;
-
-  static std::unordered_map<std::string, raylib::Texture> textures_;
+  std::unordered_map<std::string, raylib::Texture> textures_;
 
  public:
   TileMapManager();
   ~TileMapManager();
+
+  TileMapManager(const TileMapManager&) = delete;
+  TileMapManager(TileMapManager&&) = delete;
+  auto operator=(const TileMapManager&) -> void = delete;
+  auto operator=(TileMapManager&&) -> TileMapManager& = delete;
 
   auto get_map(const char* path) -> TileMap&;
 };

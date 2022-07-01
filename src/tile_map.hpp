@@ -23,9 +23,13 @@ struct TileMap final {
   auto draw_polygon(tmx_object* obj, raylib::Color color) -> void;
 
  public:
-  TileMap(tmx_map*);
-  TileMap(TileMap&&);
+  explicit TileMap(tmx_map*);
+  TileMap(TileMap&&) noexcept;
   ~TileMap();
+
+  TileMap(TileMap&) = delete;
+  auto operator=(TileMap&) -> void = delete;
+  auto operator=(TileMap&&) -> void = delete;
 
   auto draw(raylib::Camera2D& camera) -> void;
 

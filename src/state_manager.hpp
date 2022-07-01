@@ -16,7 +16,7 @@ struct StateManager final {
  public:
   auto push(StatePtr&& st) -> void { states_.push_back(std::move(st)); }
   auto pop() -> void { states_.pop_back(); }
-  auto replace(StatePtr&& st) {
+  auto replace(StatePtr&& st) -> void {
     pop();
     push(std::forward<StatePtr>(st));
   }
@@ -28,13 +28,16 @@ struct StateManager final {
 
   auto draw() -> void {
     auto itr = states_.cend();
-    while (itr != states_.cbegin() && (*--itr)->draw_previous())
-      ;
-    for (; itr != states_.cend(); ++itr)
+    while (itr != states_.cbegin() && (*--itr)->draw_previous()) {
+    }
+    for (; itr != states_.cend(); ++itr) {
       (*itr)->draw();
+    }
   }
 
-  inline auto empty() const -> bool { return states_.empty(); }
+  [[nodiscard]] inline auto empty() const -> bool {
+    return states_.empty();
+  }
 };
 
 #endif /* STATE_MANAGER_HPP */

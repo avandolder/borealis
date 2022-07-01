@@ -10,15 +10,16 @@ namespace rl = raylib;
 const auto LINE_THICKNESS = 2.5f;
 
 inline static auto int_to_color(int color) -> rl::Color {
-  auto res = tmx_col_to_bytes(color);
-  return *reinterpret_cast<rl::Color*>(&res);
+  const auto res{tmx_col_to_bytes(color)};
+  return {res.r, res.g, res.b, res.a};
 }
 
 inline static auto visible_area(rl::Camera2D& camera)
     -> std::pair<rl::Vector2, rl::Vector2> {
   return {camera.GetScreenToWorld({0, 0}),
           camera.GetScreenToWorld(
-              {(float)::GetScreenWidth(), (float)::GetScreenHeight()})};
+              {static_cast<float>(::GetScreenWidth()),
+               static_cast<float>(::GetScreenHeight())})};
 }
 
 TileMap::TileMap(tmx_map* tmap) : tmap_(tmap) {
@@ -29,7 +30,7 @@ TileMap::TileMap(tmx_map* tmap) : tmap_(tmap) {
   }
 }
 
-TileMap::TileMap(TileMap&& other) {
+TileMap::TileMap(TileMap&& other) noexcept {
   tmap_.swap(other.tmap_);
 }
 
@@ -51,7 +52,7 @@ auto TileMap::draw(rl::Camera2D& camera) -> void {
 
 auto TileMap::draw_layers(tmx_layer* layers, rl::Camera2D& camera)
     -> void {
-  for (auto layer = layers; layer; layer = layer->next) {
+  for (auto* layer = layers; layer; layer = layer->next) {
     if (!layer->visible) continue;
 
     switch (layer->type) {
@@ -63,7 +64,7 @@ auto TileMap::draw_layers(tmx_layer* layers, rl::Camera2D& camera)
         draw_objects(layer, layer->content.objgr, camera);
         break;
       case L_IMAGE: {
-        auto image{reinterpret_cast<rl::Texture*>(
+        auto* image{reinterpret_cast<rl::Texture*>(
             layer->content.image->resource_image)};
         image->Draw(0, 0, rl::WHITE);
       } break;
@@ -119,7 +120,7 @@ auto TileMap::draw_objects(tmx_layer* layer,
 
   const auto [top, bot] = visible_area(camera);
 
-  for (auto head = objgr->head; head; head = head->next) {
+  for (auto* head = objgr->head; head; head = head->next) {
     if (!head->visible || head->x > bot.x || head->y > bot.y ||
         head->x + head->width < top.x || head->y + head->height < top.y)
       continue;
@@ -150,7 +151,7 @@ auto TileMap::draw_objects(tmx_layer* layer,
 auto TileMap::draw_polygon(tmx_object* obj, rl::Color color) -> void {
   draw_polyline(obj, color);
 
-  const auto points = obj->content.shape->points;
+  auto* const points = obj->content.shape->points;
   const auto points_len = obj->content.shape->points_len;
   if (points_len > 2) {
     ::DrawLineEx({(float)(obj->x + points[0][0]),
@@ -162,7 +163,7 @@ auto TileMap::draw_polygon(tmx_object* obj, rl::Color color) -> void {
 }
 
 auto TileMap::draw_polyline(tmx_object* obj, rl::Color color) -> void {
-  const auto points = obj->content.shape->points;
+  auto* const points = obj->content.shape->points;
   const auto points_len = obj->content.shape->points_len;
   for (int i = 1; i < points_len; i++) {
     ::DrawLineEx({(float)(obj->x + points[i - 1][0]),

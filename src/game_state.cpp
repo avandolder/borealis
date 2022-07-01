@@ -20,13 +20,13 @@ struct Vel {
 };
 
 GameState::GameState(rl::Window& window, TileMap& tmap)
-    : camera(window.GetSize() / 2.f, tmap.size() / 2.f, 0.0f, 2.0f),
-      tmap(tmap) {
+    : camera_(window.GetSize() / 2.f, tmap.size() / 2.f, 0.0f, 2.0f),
+      tmap_(tmap) {
   for (auto i = 0u; i < 10u; ++i) {
-    const auto entity = world.create();
-    world.emplace<Pos>(entity, i * 1.f, i * 1.f);
+    const auto entity = world_.create();
+    world_.emplace<Pos>(entity, i * 1.f, i * 1.f);
     if (i % 2 == 0) {
-      world.emplace<Vel>(entity, i * 1.f, i * 1.f);
+      world_.emplace<Vel>(entity, i * 1.f, i * 1.f);
     }
   }
 }
@@ -35,7 +35,7 @@ auto GameState::update(GameData game) -> void {
   auto [sm, _, window] = game;
   const auto dt = window.GetFrameTime();
 
-  world.view<Pos, Vel>().each([=](auto& pos, auto& vel) {
+  world_.view<Pos, Vel>().each([=](auto& pos, auto& vel) {
     pos.x += vel.x * dt;
     pos.y += vel.y * dt;
   });
@@ -52,25 +52,25 @@ auto GameState::update(GameData game) -> void {
                     IsKeyDown(KEY_UP)     ? -1.f
                     : IsKeyDown(KEY_DOWN) ? 1.f
                                           : 0.f};
-  camera.target =
-      rl::Vector2(camera.target) + delta.Normalize() * 200 * dt;
+  camera_.target =
+      rl::Vector2(camera_.target) + delta.Normalize() * 200 * dt;
 
-  const auto tmap_size = tmap.size();
-  camera.target = rl::Vector2(
-      std::clamp(camera.target.x, camera.offset.x / camera.zoom,
-                 tmap_size.x - camera.offset.x / camera.zoom),
-      std::clamp(camera.target.y, camera.offset.y / camera.zoom,
-                 tmap_size.y - camera.offset.y / camera.zoom));
+  const auto tmap_size = tmap_.size();
+  camera_.target = rl::Vector2(
+      std::clamp(camera_.target.x, camera_.offset.x / camera_.zoom,
+                 tmap_size.x - camera_.offset.x / camera_.zoom),
+      std::clamp(camera_.target.y, camera_.offset.y / camera_.zoom,
+                 tmap_size.y - camera_.offset.y / camera_.zoom));
 }
 
 auto GameState::draw() -> void {
-  camera.BeginMode();
+  camera_.BeginMode();
 
-  tmap.draw(camera);
+  tmap_.draw(camera_);
 
-  world.view<Pos>().each([](const auto& pos) {
+  world_.view<Pos>().each([](const auto& pos) {
     DrawRectangle(pos.x, pos.y, 1, 1, rl::WHITE);
   });
 
-  camera.EndMode();
+  camera_.EndMode();
 }
