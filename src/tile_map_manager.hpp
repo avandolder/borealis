@@ -4,6 +4,8 @@
 #include <string>
 #include <unordered_map>
 
+#include <raylib-cpp.hpp>
+
 struct TileMap;
 
 struct TileMapManager final {
@@ -11,6 +13,8 @@ struct TileMapManager final {
   using tmx_resource_manager = void;
   tmx_resource_manager* mgr_;
   std::unordered_map<std::string, TileMap> tmaps_;
+
+  static std::unordered_map<std::string, raylib::Texture> textures_;
 
  public:
   TileMapManager();

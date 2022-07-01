@@ -4,12 +4,24 @@
 #include <string>    // to_string
 
 #include <tclap/CmdLine.h>
+#include <raylib-cpp.hpp>
 
 #include "game_data.hpp"
 #include "game_state.hpp"
-#include "raylib.hpp"
 #include "state_manager.hpp"
 #include "tile_map_manager.hpp"
+
+namespace rl = raylib;
+
+struct Config final {
+  int width;
+  int height;
+  int fps;
+
+  static const int DEFAULT_WIDTH = 1280;
+  static const int DEFAULT_HEIGHT = 720;
+  static const int DEFAULT_FPS = 0;
+};
 
 auto parse_commands(int argc, char** argv) -> Config {
   try {
@@ -35,45 +47,35 @@ auto parse_commands(int argc, char** argv) -> Config {
   }
 }
 
-auto show_fps() -> void {
-  const auto fps_text{std::to_string(rl::GetFPS())};
-  rl::DrawText(
-      fps_text.data(),
-      rl::GetScreenWidth() - rl::MeasureText(fps_text.data(), 16), 0,
-      16, rl::MAGENTA);
+auto show_fps(rl::Window& window) -> void {
+  const auto fps_text{std::to_string(window.GetFPS())};
+  rl::DrawText(fps_text.data(),
+               window.GetWidth() - rl::MeasureText(fps_text, 16), 0, 16,
+               rl::MAGENTA);
 }
 
 auto main(int argc, char** argv) -> int {
   Config config{parse_commands(argc, argv)};
 
-  rl::InitWindow(config.width, config.height, "borealis");
-  rl::SetTargetFPS(config.fps);
-  rl::SetWindowState(rl::FLAG_VSYNC_HINT);
+  rl::Window window(config.width, config.height, "borealis");
+  window.SetTargetFPS(config.fps)
+      .SetState(FLAG_VSYNC_HINT | FLAG_MSAA_4X_HINT);
 
-  {
-    // Create the game data within an interior scope so it can be
-    // destroyed before the window is closed. Otherwise raylib
-    // will segfault.
-    StateManager<GameData> sm;
-    TileMapManager tm;
-    GameData game{sm, tm, config};
+  StateManager<GameData> sm;
+  TileMapManager tm;
+  sm.push(std::make_unique<GameState>(window,
+                                      tm.get_map("res/island.tmx")));
 
-    sm.push(std::make_unique<GameState>(tm.get_map("res/island.tmx")));
+  while (!window.ShouldClose() && !sm.empty()) {
+    sm.update({sm, tm, window});
 
-    while (!rl::WindowShouldClose() && !sm.empty()) {
-      sm.update(game);
-
-      rl::BeginDrawing();
-      rl::ClearBackground(rl::BLACK);
-      sm.draw();
+    window.BeginDrawing().ClearBackground(rl::BLACK);
+    sm.draw();
 #ifdef DEBUG
-      show_fps();
+    show_fps(window);
 #endif
-      rl::EndDrawing();
-    }
+    window.EndDrawing();
   }
-
-  rl::CloseWindow();
 
   return 0;
 }

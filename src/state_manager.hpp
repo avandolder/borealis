@@ -21,7 +21,7 @@ struct StateManager final {
     push(std::forward<StatePtr>(st));
   }
 
-  auto update(T& t) -> void {
+  auto update(T t) -> void {
     assert(!states_.empty());
     states_.back()->update(t);
   }

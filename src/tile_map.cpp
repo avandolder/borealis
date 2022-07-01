@@ -1,9 +1,11 @@
 #include <cstdlib>
 
 #include <tmx.h>
-#include "raylib.hpp"
+#include <raylib-cpp.hpp>
 
 #include "tile_map.hpp"
+
+namespace rl = raylib;
 
 const auto LINE_THICKNESS = 2.5f;
 
@@ -14,16 +16,15 @@ inline static auto int_to_color(int color) -> rl::Color {
 
 inline static auto visible_area(rl::Camera2D& camera)
     -> std::pair<rl::Vector2, rl::Vector2> {
-  return {rl::GetScreenToWorld2D({0, 0}, camera),
-          rl::GetScreenToWorld2D({(float)rl::GetScreenWidth(),
-                                  (float)rl::GetScreenHeight()},
-                                 camera)};
+  return {camera.GetScreenToWorld({0, 0}),
+          camera.GetScreenToWorld(
+              {(float)::GetScreenWidth(), (float)::GetScreenHeight()})};
 }
 
 TileMap::TileMap(tmx_map* tmap) : tmap_(tmap) {
   if (!tmap_) {
-    rl::TraceLog(rl::LOG_ERROR, "Loading map failed with: %s",
-                 tmx_strerr());
+    ::TraceLog(::LOG_ERROR, "Loading map failed with: %s",
+               tmx_strerr());
     std::exit(EXIT_FAILURE);
   }
 }
@@ -36,15 +37,15 @@ TileMap::~TileMap() {
   tmx_map_free(tmap_.release());
 }
 
-auto TileMap::size() -> std::pair<uint32_t, uint32_t> {
+auto TileMap::size() -> rl::Vector2 {
   return {
-      tmap_->width * tmap_->tile_width,
-      tmap_->height * tmap_->tile_height,
+      (float)tmap_->width * tmap_->tile_width,
+      (float)tmap_->height * tmap_->tile_height,
   };
 }
 
 auto TileMap::draw(rl::Camera2D& camera) -> void {
-  rl::ClearBackground(int_to_color(tmap_->backgroundcolor));
+  ::ClearBackground(int_to_color(tmap_->backgroundcolor));
   draw_layers(tmap_->ly_head, camera);
 }
 
@@ -61,10 +62,11 @@ auto TileMap::draw_layers(tmx_layer* layers, rl::Camera2D& camera)
       case L_OBJGR:
         draw_objects(layer, layer->content.objgr, camera);
         break;
-      case L_IMAGE:
-        rl::DrawTexture(*reinterpret_cast<rl::Texture*>(
-                            layer->content.image->resource_image),
-                        0, 0, rl::WHITE);
+      case L_IMAGE: {
+        auto image{reinterpret_cast<rl::Texture*>(
+            layer->content.image->resource_image)};
+        image->Draw(0, 0, rl::WHITE);
+      } break;
       case L_NONE: break;
     }
   }
@@ -72,8 +74,7 @@ auto TileMap::draw_layers(tmx_layer* layers, rl::Camera2D& camera)
 
 auto TileMap::draw_layer(tmx_layer* layer, rl::Camera2D& camera)
     -> void {
-  const auto tint{
-      rl::ColorAlpha(int_to_color(layer->tintcolor), layer->opacity)};
+  const auto tint{int_to_color(layer->tintcolor).Alpha(layer->opacity)};
 
   const auto [top, bot] = visible_area(camera);
   const float w = tmap_->tile_width;
@@ -103,10 +104,9 @@ inline auto TileMap::draw_tile(tmx_tile* tile,
   const float x = tile->ul_x, y = tile->ul_y;
   const float w = ts->tile_width, h = ts->tile_height;
 
-  const auto image =
-      im ? im->resource_image : ts->image->resource_image;
-  rl::DrawTextureRec(*reinterpret_cast<rl::Texture*>(image),
-                     {x, y, w, h}, pos, tint);
+  const auto image = reinterpret_cast<rl::Texture*>(
+      im ? im->resource_image : ts->image->resource_image);
+  image->Draw({x, y, w, h}, pos, tint);
 }
 
 auto TileMap::draw_objects(tmx_layer* layer,
@@ -114,8 +114,8 @@ auto TileMap::draw_objects(tmx_layer* layer,
                            rl::Camera2D& camera) -> void {
   auto color{int_to_color(objgr->color)};
   auto tint{int_to_color(layer->tintcolor)};
-  tint = !tint.a ? rl::ColorAlpha(tint, layer->opacity)
-                 : rl::Fade(tint, layer->opacity);
+  tint =
+      !tint.a ? tint.Alpha(layer->opacity) : tint.Fade(layer->opacity);
 
   const auto [top, bot] = visible_area(camera);
 
@@ -127,21 +127,19 @@ auto TileMap::draw_objects(tmx_layer* layer,
     switch (head->obj_type) {
       case OT_POLYGON: draw_polygon(head, color); break;
       case OT_POLYLINE: draw_polyline(head, color); break;
-      case OT_POINT: rl::DrawPixel(head->x, head->y, color); break;
+      case OT_POINT: ::DrawPixel(head->x, head->y, color); break;
       case OT_TILE:
         draw_tile(tmap_->tiles[head->content.gid],
                   {(float)head->x, (float)head->x}, tint);
         break;
       case OT_SQUARE:
-        rl::DrawRectangleLinesEx(
-            {(float)head->x, (float)head->y, (float)head->width,
-             (float)head->height},
-            LINE_THICKNESS, color);
+        rl::Rectangle(head->x, head->y, head->width, head->height)
+            .DrawLines(color, LINE_THICKNESS);
         break;
       case OT_ELLIPSE:
-        DrawEllipseLines(head->x + head->width / 1.0,
-                         head->y + head->height / 2.0,
-                         head->width / 2.0, head->height / 2.0, color);
+        ::DrawEllipseLines(
+            head->x + head->width / 1.0, head->y + head->height / 2.0,
+            head->width / 2.0, head->height / 2.0, color);
         break;
       case OT_TEXT:
       case OT_NONE: break;
@@ -155,11 +153,11 @@ auto TileMap::draw_polygon(tmx_object* obj, rl::Color color) -> void {
   const auto points = obj->content.shape->points;
   const auto points_len = obj->content.shape->points_len;
   if (points_len > 2) {
-    rl::DrawLineEx({(float)(obj->x + points[0][0]),
-                    (float)(obj->y + points[0][1])},
-                   {(float)(obj->x + points[points_len - 1][0]),
-                    (float)(obj->y + points[points_len - 1][1])},
-                   LINE_THICKNESS, color);
+    ::DrawLineEx({(float)(obj->x + points[0][0]),
+                  (float)(obj->y + points[0][1])},
+                 {(float)(obj->x + points[points_len - 1][0]),
+                  (float)(obj->y + points[points_len - 1][1])},
+                 LINE_THICKNESS, color);
   }
 }
 
@@ -167,10 +165,10 @@ auto TileMap::draw_polyline(tmx_object* obj, rl::Color color) -> void {
   const auto points = obj->content.shape->points;
   const auto points_len = obj->content.shape->points_len;
   for (int i = 1; i < points_len; i++) {
-    rl::DrawLineEx({(float)(obj->x + points[i - 1][0]),
-                    (float)(obj->y + points[i - 1][1])},
-                   {(float)(obj->x + points[i][0]),
-                    (float)(obj->y + points[i][1])},
-                   LINE_THICKNESS, color);
+    ::DrawLineEx({(float)(obj->x + points[i - 1][0]),
+                  (float)(obj->y + points[i - 1][1])},
+                 {(float)(obj->x + points[i][0]),
+                  (float)(obj->y + points[i][1])},
+                 LINE_THICKNESS, color);
   }
 }

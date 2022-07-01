@@ -1,11 +1,13 @@
 #include <algorithm>
 
 #include <entt/entt.hpp>
+#include <raylib-cpp.hpp>
 
 #include "game_data.hpp"
 #include "game_state.hpp"
 #include "pause_state.hpp"
-#include "raylib.hpp"
+
+namespace rl = raylib;
 
 struct Pos {
   float x;
@@ -17,15 +19,9 @@ struct Vel {
   float y;
 };
 
-GameState::GameState(TileMap& tmap)
-    : tmap(tmap),
-      camera{
-          .offset{rl::GetScreenWidth() / 2.f,
-                  rl::GetScreenHeight() / 2.f},
-          .target = to_vector(tmap.size()) / 2.f,
-          .rotation = 0.0f,
-          .zoom = 2.0f,
-      } {
+GameState::GameState(rl::Window& window, TileMap& tmap)
+    : camera(window.GetSize() / 2.f, tmap.size() / 2.f, 0.0f, 2.0f),
+      tmap(tmap) {
   for (auto i = 0u; i < 10u; ++i) {
     const auto entity = world.create();
     world.emplace<Pos>(entity, i * 1.f, i * 1.f);
@@ -35,45 +31,46 @@ GameState::GameState(TileMap& tmap)
   }
 }
 
-auto GameState::update(GameData& game) -> void {
-  const auto dt = rl::GetFrameTime();
+auto GameState::update(GameData game) -> void {
+  auto [sm, _, window] = game;
+  const auto dt = window.GetFrameTime();
 
   world.view<Pos, Vel>().each([=](auto& pos, auto& vel) {
     pos.x += vel.x * dt;
     pos.y += vel.y * dt;
   });
 
-  if (rl::IsKeyPressed(rl::KEY_SPACE)) {
-    game.sm.push(std::make_unique<PauseState>());
-  } else if (rl::IsKeyPressed(rl::KEY_ENTER)) {
-    game.sm.pop();
+  if (IsKeyPressed(KEY_SPACE)) {
+    sm.push(std::make_unique<PauseState>());
+  } else if (IsKeyPressed(KEY_ENTER)) {
+    sm.pop();
   }
 
-  auto dx = rl::IsKeyDown(rl::KEY_LEFT)    ? -1.f
-            : rl::IsKeyDown(rl::KEY_RIGHT) ? 1.f
-                                           : 0.f;
-  auto dy = rl::IsKeyDown(rl::KEY_UP)     ? -1.f
-            : rl::IsKeyDown(rl::KEY_DOWN) ? 1.f
-                                          : 0.f;
-  camera.target += normalize({dx, dy}) * 200 * dt;
+  rl::Vector2 delta{IsKeyDown(KEY_LEFT)    ? -1.f
+                    : IsKeyDown(KEY_RIGHT) ? 1.f
+                                           : 0.f,
+                    IsKeyDown(KEY_UP)     ? -1.f
+                    : IsKeyDown(KEY_DOWN) ? 1.f
+                                          : 0.f};
+  camera.target =
+      rl::Vector2(camera.target) + delta.Normalize() * 200 * dt;
 
-  const auto tmap_size = to_vector(tmap.size());
-  camera.target = {
+  const auto tmap_size = tmap.size();
+  camera.target = rl::Vector2(
       std::clamp(camera.target.x, camera.offset.x / camera.zoom,
                  tmap_size.x - camera.offset.x / camera.zoom),
       std::clamp(camera.target.y, camera.offset.y / camera.zoom,
-                 tmap_size.y - camera.offset.y / camera.zoom),
-  };
+                 tmap_size.y - camera.offset.y / camera.zoom));
 }
 
 auto GameState::draw() -> void {
-  rl::BeginMode2D(camera);
+  camera.BeginMode();
 
   tmap.draw(camera);
 
   world.view<Pos>().each([](const auto& pos) {
-    rl::DrawRectangle(pos.x, pos.y, 1, 1, rl::WHITE);
+    DrawRectangle(pos.x, pos.y, 1, 1, rl::WHITE);
   });
 
-  rl::EndMode2D();
+  camera.EndMode();
 }

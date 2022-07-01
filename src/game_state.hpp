@@ -2,20 +2,20 @@
 #define GAME_STATE_HPP
 
 #include <entt/entt.hpp>
+#include <raylib-cpp.hpp>
 
 #include "game_data.hpp"
-#include "raylib.hpp"
 #include "state.hpp"
 #include "tile_map.hpp"
 
 struct GameState final : public State<GameData> {
   entt::registry world;
+  raylib::Camera2D camera;
   TileMap& tmap;
-  rl::Camera2D camera;
 
-  GameState(TileMap&);
+  GameState(raylib::Window&, TileMap&);
 
-  auto update(GameData& game) -> void override;
+  auto update(GameData game) -> void override;
   auto draw() -> void override;
 };
 
