@@ -9,7 +9,7 @@ namespace rl = raylib;
 
 const auto LINE_THICKNESS = 2.5f;
 
-inline static auto int_to_color(int color) -> rl::Color {
+inline static auto int_to_color(auto color) -> rl::Color {
   const auto res{tmx_col_to_bytes(color)};
   return {res.r, res.g, res.b, res.a};
 }
@@ -87,8 +87,8 @@ auto TileMap::draw_layer(tmx_layer* layer, rl::Camera2D& camera)
     for (uint32_t j = std::max(top.x / w, 0.f),
                   jj = std::min(bot.x / w + 1, (float)tmap_->width);
          j < jj; ++j) {
-      const auto gid = (layer->content.gids[i * tmap_->width + j]) &
-                       TMX_FLIP_BITS_REMOVAL;
+      const auto gid = (layer->content.gids[i * tmap_->width + j])
+                       & TMX_FLIP_BITS_REMOVAL;
       if (!tmap_->tiles[gid]) continue;
 
       draw_tile(tmap_->tiles[gid],
@@ -121,8 +121,9 @@ auto TileMap::draw_objects(tmx_layer* layer,
   const auto [top, bot] = visible_area(camera);
 
   for (auto* head = objgr->head; head; head = head->next) {
-    if (!head->visible || head->x > bot.x || head->y > bot.y ||
-        head->x + head->width < top.x || head->y + head->height < top.y)
+    if (!head->visible || head->x > bot.x || head->y > bot.y
+        || head->x + head->width < top.x
+        || head->y + head->height < top.y)
       continue;
 
     switch (head->obj_type) {
