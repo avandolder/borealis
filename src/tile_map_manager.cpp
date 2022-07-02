@@ -1,5 +1,3 @@
-#include <optional>
-
 #include <tmx.h>
 #include <raylib-cpp.hpp>
 
