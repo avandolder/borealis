@@ -56,11 +56,12 @@ auto show_fps(rl::Window& window) -> void {
 }
 
 auto main(int argc, char** argv) -> int {
-  Config config{parse_commands(argc, argv)};
+  rl::Window window(0, 0, "", true);
+  window.SetState(FLAG_VSYNC_HINT | FLAG_MSAA_4X_HINT);
 
-  rl::Window window(config.width, config.height, "borealis");
-  window.SetTargetFPS(config.fps)
-      .SetState(FLAG_VSYNC_HINT | FLAG_MSAA_4X_HINT);
+  Config config{parse_commands(argc, argv)};
+  window.Init(config.width, config.height, "borealis");
+  window.SetTargetFPS(config.fps);
 
   StateManager<GameData> sm;
   TileMapManager tm;
