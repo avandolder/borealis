@@ -35,9 +35,7 @@ struct StateManager final {
     }
   }
 
-  [[nodiscard]] inline auto empty() const -> bool {
-    return states_.empty();
-  }
+  [[nodiscard]] auto empty() const -> bool { return states_.empty(); }
 };
 
 #endif /* STATE_MANAGER_HPP */

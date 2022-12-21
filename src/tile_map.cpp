@@ -9,12 +9,12 @@ namespace rl = raylib;
 
 const auto LINE_THICKNESS = 2.5f;
 
-inline static auto int_to_color(auto color) -> rl::Color {
+static auto int_to_color(auto color) -> rl::Color {
   const auto res{tmx_col_to_bytes(color)};
   return {res.r, res.g, res.b, res.a};
 }
 
-inline static auto visible_area(rl::Camera2D& camera)
+static auto visible_area(rl::Camera2D& camera)
     -> std::pair<rl::Vector2, rl::Vector2> {
   return {camera.GetScreenToWorld({0, 0}),
           camera.GetScreenToWorld(
@@ -97,9 +97,8 @@ auto TileMap::draw_layer(tmx_layer* layer, rl::Camera2D& camera)
   }
 }
 
-inline auto TileMap::draw_tile(tmx_tile* tile,
-                               rl::Vector2 pos,
-                               rl::Color tint) -> void {
+auto TileMap::draw_tile(tmx_tile* tile, rl::Vector2 pos, rl::Color tint)
+    -> void {
   const auto ts = tile->tileset;
   const auto im = tile->image;
   const float x = tile->ul_x, y = tile->ul_y;
