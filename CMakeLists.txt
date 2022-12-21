@@ -30,12 +30,12 @@ if (NOT raylib_cpp_FOUND)
     FetchContent_MakeAvailable(raylib_cpp)
 endif()
  
-find_package(EnTT 3.10.1 QUIET)
+find_package(EnTT 3.11.1 QUIET)
 if (NOT EnTT_FOUND)
     FetchContent_Declare(
         EnTT
         GIT_REPOSITORY "https://github.com/skypjack/entt"
-        GIT_TAG v3.10.1
+        GIT_TAG v3.11.1
     )
     FetchContent_MakeAvailable(EnTT)
 endif()
@@ -71,6 +71,8 @@ if (NOT box2d_FOUND)
         GIT_REPOSITORY "https://github.com/erincatto/box2d"
         GIT_TAG 9dc24a6fd4f32442c4bcf80791de47a0a7d25afb
     )
+    set (BOX2D_BUILD_UNIT_TESTS OFF)
+    set (BOX2D_BUILD_TESTBED OFF)
     FetchContent_MakeAvailable(box2d)
 endif()
 
