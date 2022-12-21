@@ -45,13 +45,12 @@ auto TileMap::size() -> rl::Vector2 {
   };
 }
 
-auto TileMap::draw(rl::Camera2D& camera) -> void {
+void TileMap::draw(rl::Camera2D& camera) {
   ::ClearBackground(int_to_color(tmap_->backgroundcolor));
   draw_layers(tmap_->ly_head, camera);
 }
 
-auto TileMap::draw_layers(tmx_layer* layers, rl::Camera2D& camera)
-    -> void {
+void TileMap::draw_layers(tmx_layer* layers, rl::Camera2D& camera) {
   for (auto* layer = layers; layer; layer = layer->next) {
     if (!layer->visible) continue;
 
@@ -73,8 +72,7 @@ auto TileMap::draw_layers(tmx_layer* layers, rl::Camera2D& camera)
   }
 }
 
-auto TileMap::draw_layer(tmx_layer* layer, rl::Camera2D& camera)
-    -> void {
+void TileMap::draw_layer(tmx_layer* layer, rl::Camera2D& camera) {
   const auto tint{int_to_color(layer->tintcolor).Alpha(layer->opacity)};
 
   const auto [top, bot] = visible_area(camera);
@@ -97,8 +95,9 @@ auto TileMap::draw_layer(tmx_layer* layer, rl::Camera2D& camera)
   }
 }
 
-auto TileMap::draw_tile(tmx_tile* tile, rl::Vector2 pos, rl::Color tint)
-    -> void {
+void TileMap::draw_tile(tmx_tile* tile,
+                        rl::Vector2 pos,
+                        rl::Color tint) {
   const auto ts = tile->tileset;
   const auto im = tile->image;
   const float x = tile->ul_x, y = tile->ul_y;
@@ -109,9 +108,9 @@ auto TileMap::draw_tile(tmx_tile* tile, rl::Vector2 pos, rl::Color tint)
   image->Draw({x, y, w, h}, pos, tint);
 }
 
-auto TileMap::draw_objects(tmx_layer* layer,
+void TileMap::draw_objects(tmx_layer* layer,
                            tmx_object_group* objgr,
-                           rl::Camera2D& camera) -> void {
+                           rl::Camera2D& camera) {
   auto color{int_to_color(objgr->color)};
   auto tint{int_to_color(layer->tintcolor)};
   tint =
@@ -148,7 +147,7 @@ auto TileMap::draw_objects(tmx_layer* layer,
   }
 }
 
-auto TileMap::draw_polygon(tmx_object* obj, rl::Color color) -> void {
+void TileMap::draw_polygon(tmx_object* obj, rl::Color color) {
   draw_polyline(obj, color);
 
   auto* const points = obj->content.shape->points;
@@ -162,7 +161,7 @@ auto TileMap::draw_polygon(tmx_object* obj, rl::Color color) -> void {
   }
 }
 
-auto TileMap::draw_polyline(tmx_object* obj, rl::Color color) -> void {
+void TileMap::draw_polyline(tmx_object* obj, rl::Color color) {
   auto* const points = obj->content.shape->points;
   const auto points_len = obj->content.shape->points_len;
   for (int i = 1; i < points_len; i++) {

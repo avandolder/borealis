@@ -17,8 +17,8 @@ struct GameState final : public State<GameData> {
  public:
   GameState(raylib::Window&, TileMap&);
 
-  auto update(GameData game) -> void override;
-  auto draw() -> void override;
+  void update(GameData game) override;
+  void draw() override;
 };
 
 #endif /* GAME_STATE_HPP */

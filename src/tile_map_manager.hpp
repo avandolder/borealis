@@ -21,7 +21,7 @@ struct TileMapManager final {
 
   TileMapManager(const TileMapManager&) = delete;
   TileMapManager(TileMapManager&&) = delete;
-  auto operator=(const TileMapManager&) -> void = delete;
+  void operator=(const TileMapManager&) = delete;
   auto operator=(TileMapManager&&) -> TileMapManager& = delete;
 
   auto get_map(const char* path) -> TileMap&;

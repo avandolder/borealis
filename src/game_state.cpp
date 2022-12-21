@@ -31,7 +31,7 @@ GameState::GameState(rl::Window& window, TileMap& tmap)
   }
 }
 
-auto GameState::update(GameData game) -> void {
+void GameState::update(GameData game) {
   auto [sm, _, window] = game;
   const auto dt = window.GetFrameTime();
 
@@ -63,7 +63,7 @@ auto GameState::update(GameData game) -> void {
                  tmap_size.y - camera_.offset.y / camera_.zoom));
 }
 
-auto GameState::draw() -> void {
+void GameState::draw() {
   camera_.BeginMode();
 
   tmap_.draw(camera_);

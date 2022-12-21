@@ -9,13 +9,13 @@
 namespace rl = raylib;
 
 struct PauseState final : public State<GameData> {
-  auto update(GameData game) -> void override {
+  void update(GameData game) override {
     if (IsKeyPressed(KEY_SPACE)) {
       game.sm.pop();
     }
   }
 
-  auto draw() -> void override {
+  void draw() override {
     DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(),
                   rl::BLACK.Fade(0.5));
     rl::DrawText("over", 10, 10, 20, rl::LIGHTGRAY);

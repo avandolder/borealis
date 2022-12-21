@@ -46,7 +46,7 @@ auto parse_commands(int argc, char** argv) -> Config {
   }
 }
 
-auto show_fps(rl::Window& window) -> void {
+void show_fps(rl::Window& window) {
   const auto fps_text{std::to_string(window.GetFPS())};
   const auto fps_text_size = 16;
   rl::DrawText(

@@ -14,19 +14,19 @@ struct StateManager final {
   std::vector<StatePtr> states_;
 
  public:
-  auto push(StatePtr&& st) -> void { states_.push_back(std::move(st)); }
-  auto pop() -> void { states_.pop_back(); }
-  auto replace(StatePtr&& st) -> void {
+  void push(StatePtr&& st) { states_.push_back(std::move(st)); }
+  void pop() { states_.pop_back(); }
+  void replace(StatePtr&& st) {
     pop();
     push(std::forward<StatePtr>(st));
   }
 
-  auto update(T t) -> void {
+  void update(T t) {
     assert(!states_.empty());
     states_.back()->update(t);
   }
 
-  auto draw() -> void {
+  void draw() {
     auto itr = states_.cend();
     while (itr != states_.cbegin() && (*--itr)->draw_previous()) {
     }

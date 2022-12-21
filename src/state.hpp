@@ -4,8 +4,8 @@
 template <class T>
 struct State {
   virtual ~State() = default;
-  virtual auto update(T) -> void = 0;
-  virtual auto draw() -> void = 0;
+  virtual void update(T) = 0;
+  virtual void draw() = 0;
   virtual auto draw_previous() -> bool { return false; }
 };
 
