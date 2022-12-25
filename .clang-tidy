@@ -417,6 +417,8 @@ CheckOptions:
     value:           '1.0;100.0;'
   - key:             readability-identifier-naming.AggressiveDependentMemberLookup
     value:           'false'
+  - key:             readability-identifier-length.MinimumVariableNameLength
+    value:           '0'
   - key:             readability-redundant-smartptr-get.IgnoreMacros
     value:           'true'
   - key:             readability-implicit-bool-conversion.AllowPointerConditions
