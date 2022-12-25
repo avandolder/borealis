@@ -29,7 +29,7 @@ if (NOT raylib_cpp_FOUND)
     )
     FetchContent_MakeAvailable(raylib_cpp)
 endif()
- 
+
 find_package(EnTT 3.11.1 QUIET)
 if (NOT EnTT_FOUND)
     FetchContent_Declare(
