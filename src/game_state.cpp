@@ -9,36 +9,29 @@
 
 namespace rl = raylib;
 
-struct Pos {
-  float x;
-  float y;
+struct Pos final : rl::Vector2 {
+  explicit Pos(rl::Vector2 v) : rl::Vector2(v) {}
+  Pos(float x, float y) : rl::Vector2(x, y) {}
+};
+struct Vel final : rl::Vector2 {
+  explicit Vel(rl::Vector2 v) : rl::Vector2(v) {}
+  Vel(float x, float y) : rl::Vector2(x, y) {}
 };
 
-struct Vel {
-  float x;
-  float y;
-};
+struct Player final {};
 
 GameState::GameState(rl::Window& window, TileMap& tmap)
-    : camera_(window.GetSize() / 2.f, tmap.size() / 2.f, 0.0f, 2.0f),
-      tmap_(tmap) {
-  for (auto i = 0u; i < 10u; ++i) {
-    const auto entity = world_.create();
-    world_.emplace<Pos>(entity, i * 1.f, i * 1.f);
-    if (i % 2 == 0) {
-      world_.emplace<Vel>(entity, i * 1.f, i * 1.f);
-    }
-  }
+    : camera_(window.GetSize() / 2.f, rl::Vector2::Zero(), 0.0f, 2.f),
+      tmap_(tmap),
+      player_(world_.create()) {
+  world_.emplace<Pos>(player_, tmap.size() / 2.f);
+  world_.emplace<Vel>(player_, rl::Vector2::Zero());
+  world_.emplace<Player>(player_);
 }
 
 void GameState::update(GameData game) {
   auto [sm, _, window] = game;
   const auto dt = window.GetFrameTime();
-
-  world_.view<Pos, Vel>().each([=](auto& pos, auto& vel) {
-    pos.x += vel.x * dt;
-    pos.y += vel.y * dt;
-  });
 
   if (IsKeyPressed(KEY_SPACE)) {
     sm.push(std::make_unique<PauseState>());
@@ -46,20 +39,27 @@ void GameState::update(GameData game) {
     sm.pop();
   }
 
-  rl::Vector2 delta{IsKeyDown(KEY_LEFT)    ? -1.f
-                    : IsKeyDown(KEY_RIGHT) ? 1.f
-                                           : 0.f,
-                    IsKeyDown(KEY_UP)     ? -1.f
-                    : IsKeyDown(KEY_DOWN) ? 1.f
-                                          : 0.f};
-  camera_.target =
-      rl::Vector2(camera_.target) + delta.Normalize() * 200 * dt;
+  const auto delta =
+      rl::Vector2{IsKeyDown(KEY_LEFT) || IsKeyDown(KEY_A)    ? -1.f
+                  : IsKeyDown(KEY_RIGHT) || IsKeyDown(KEY_D) ? 1.f
+                                                             : 0.f,
+                  IsKeyDown(KEY_UP) || IsKeyDown(KEY_W)     ? -1.f
+                  : IsKeyDown(KEY_DOWN) || IsKeyDown(KEY_S) ? 1.f
+                                                            : 0.f}
+          .Normalize();
+  world_.get<Vel>(player_) = Vel(delta * 200);
 
   const auto tmap_size = tmap_.size();
+  world_.view<Pos, Vel>().each([&](auto& pos, auto& vel) {
+    pos.x = std::clamp(0.f, pos.x + vel.x * dt, tmap_size.x);
+    pos.y = std::clamp(0.f, pos.y + vel.y * dt, tmap_size.y);
+  });
+
+  const auto& pos = world_.get<Pos>(player_);
   camera_.target = rl::Vector2(
-      std::clamp(camera_.target.x, camera_.offset.x / camera_.zoom,
+      std::clamp(pos.x, camera_.offset.x / camera_.zoom,
                  tmap_size.x - camera_.offset.x / camera_.zoom),
-      std::clamp(camera_.target.y, camera_.offset.y / camera_.zoom,
+      std::clamp(pos.y, camera_.offset.y / camera_.zoom,
                  tmap_size.y - camera_.offset.y / camera_.zoom));
 }
 
@@ -69,7 +69,7 @@ void GameState::draw() {
   tmap_.draw(camera_);
 
   world_.view<Pos>().each([](const auto& pos) {
-    DrawRectangle(pos.x, pos.y, 1, 1, rl::WHITE);
+    DrawRectangle(pos.x, pos.y, 10, 10, rl::WHITE);
   });
 
   camera_.EndMode();

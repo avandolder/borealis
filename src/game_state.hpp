@@ -13,6 +13,7 @@ struct GameState final : public State<GameData> {
   entt::registry world_;
   raylib::Camera2D camera_;
   TileMap& tmap_;
+  entt::entity player_;
 
  public:
   GameState(raylib::Window&, TileMap&);
