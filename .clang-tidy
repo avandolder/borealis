@@ -242,7 +242,7 @@ CheckOptions:
   - key:             google-runtime-int.TypeSuffix
     value:           ''
   - key:             cppcoreguidelines-avoid-magic-numbers.IgnoredFloatingPointValues
-    value:           '1.0;100.0;'
+    value:           '1.0;2.0;100.0;'
   - key:             modernize-use-emplace.IgnoreImplicitConstructors
     value:           'false'
   - key:             modernize-make-unique.MakeSmartPtrFunctionHeader
@@ -272,7 +272,7 @@ CheckOptions:
   - key:             performance-unnecessary-value-param.AllowedTypes
     value:           ''
   - key:             cppcoreguidelines-avoid-magic-numbers.IgnorePowersOf2IntegerValues
-    value:           'false'
+    value:           'true'
   - key:             cppcoreguidelines-special-member-functions.AllowMissingMoveFunctionsWhenCopyIsDeleted
     value:           'false'
   - key:             cppcoreguidelines-avoid-magic-numbers.IgnoredIntegerValues
@@ -414,10 +414,12 @@ CheckOptions:
   - key:             readability-redundant-declaration.IgnoreMacros
     value:           'true'
   - key:             readability-magic-numbers.IgnoredFloatingPointValues
-    value:           '1.0;100.0;'
+    value:           '1.0;100.0;2.0;'
   - key:             readability-identifier-naming.AggressiveDependentMemberLookup
     value:           'false'
   - key:             readability-identifier-length.MinimumVariableNameLength
+    value:           '0'
+  - key:             readability-identifier-length.MinimumParameterNameLength
     value:           '0'
   - key:             readability-redundant-smartptr-get.IgnoreMacros
     value:           'true'
@@ -516,7 +518,7 @@ CheckOptions:
   - key:             readability-suspicious-call-argument.LevenshteinSimilarAbove
     value:           '66'
   - key:             readability-magic-numbers.IgnorePowersOf2IntegerValues
-    value:           'false'
+    value:           'true'
   - key:             readability-redundant-member-init.IgnoreBaseInCopyConstructors
     value:           'false'
   - key:             misc-unused-parameters.StrictMode
