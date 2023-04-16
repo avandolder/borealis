@@ -18,21 +18,21 @@ struct Config final {
   int height;
   int fps;
 
-  static const int DEFAULT_WIDTH = 1280;
+  static const int DEFAULT_WIDTH = 960;
   static const int DEFAULT_HEIGHT = 720;
   static const int DEFAULT_FPS = 0;
 };
 
 auto parse_commands(int argc, char** argv) -> Config {
-  try {
-    TCLAP::CmdLine cmd("", ' ', "0.1", false);
-    TCLAP::ValueArg<int> fps("f", "fps", "", false, Config::DEFAULT_FPS,
-                             "", cmd);
-    TCLAP::ValueArg<int> width("w", "width", "", false,
-                               Config::DEFAULT_WIDTH, "", cmd);
-    TCLAP::ValueArg<int> height("h", "height", "", false,
-                                Config::DEFAULT_HEIGHT, "", cmd);
+  TCLAP::CmdLine cmd("", ' ', "0.1", false);
+  TCLAP::ValueArg<int> fps("f", "fps", "", false, Config::DEFAULT_FPS,
+                           "", cmd);
+  TCLAP::ValueArg<int> width("w", "width", "", false,
+                             Config::DEFAULT_WIDTH, "", cmd);
+  TCLAP::ValueArg<int> height("h", "height", "", false,
+                              Config::DEFAULT_HEIGHT, "", cmd);
 
+  try {
     cmd.parse(argc, argv);
     return {
         .width = width.getValue(),

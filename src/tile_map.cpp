@@ -63,7 +63,7 @@ void TileMap::draw_layers(tmx_layer* layers, rl::Camera2D& camera) {
         draw_objects(layer, layer->content.objgr, camera);
         break;
       case L_IMAGE: {
-        auto* image{reinterpret_cast<rl::Texture*>(
+        auto* image{static_cast<rl::Texture*>(
             layer->content.image->resource_image)};
         image->Draw(0, 0, rl::WHITE);
       } break;

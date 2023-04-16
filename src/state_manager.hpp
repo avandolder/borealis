@@ -14,7 +14,7 @@ struct StateManager final {
   std::vector<StatePtr> states_;
 
  public:
-  void push(StatePtr&& st) { states_.push_back(std::move(st)); }
+  void push(StatePtr&& st) { states_.push_back(std::forward(st)); }
   void pop() { states_.pop_back(); }
   void replace(StatePtr&& st) {
     pop();
